@@ -1,62 +1,62 @@
-const { invitationMail, sendOtp } = require('../helpers/mailHelper');
-const User = require('../models/user.model')
+const { invitationMail, sendOtp } = require("../helpers/mailHelper");
+const User = require("../models/user.model");
+const { StatusCodes } = require("http-status-codes");
 
-let createUser=async (req,res,next)=>
-{
-    try
-    {
-        let {fullname,email,role}=req.body;
-        
-        let isUserAvailable=await User.findOne({email});
+let createUser = async (req, res, next) => {
+    try {
+        let { name, age, email, profile } = req.body;
 
-            if(isUserAvailable)
-            {
-                return res.status(500).json({error:true,message:"User Already Exists"})
-            }
+        console.log(req.file);
 
+        //! altering the path of file and storing in db
+        let port = "http://localhost:4500";
+        // let path=req.file.path.replace("public","");
+        console.log(path)
+        let path = req.file.path.split("public")[1];
+        let imagePath = port + path;
 
-            let user=await User.create({fullname,email,role})
-            invitaionMail(email,fullname,role)
+        //! altering the path of file and storing in db
 
-            return res.status(201).json({error:false,message:"User Added Successfully",data:user})
+        let isAvailable = await User.findOne({ email });
+        if (isAvailable) {
+            return res.status(StatusCodes.CONFLICT).json({
+                error: true,
+                message: `User already exists with given email ${email}`,
+            });
+        }
 
+        let newUser = await User.create({ name, age, email, profile: imagePath });
+        return res.status(StatusCodes.CREATED).json({
+            error: false,
+            message: `User data created with email ${email}`,
+            data: newUser,
+        });
+    } catch (err) {
+        next(err);
     }
-    catch(err)
-    {
-        next(err)
+};
+
+let getUsers = async (req, res, next) => {
+    try {
+        let users = await User.find({});
+        if (users.length == 0) {
+            return res
+                .status(StatusCodes.NOT_FOUND)
+                .json({ error: true, message: `Users not available` });
+        }
+        return res
+            .status(StatusCodes.OK)
+            .json({
+                error: false,
+                message: `User data fetched successfully`,
+                data: users,
+            });
+    } catch (err) {
+        next(err);
     }
-}
+};
 
-
-let loginUser=async (req,res,next)=>
-{
-    try
-    {
-        let {email}=req.body
-        let isUserAvailable=await User.findOne({email});
-
-            if(!isUserAvailable)
-            {
-                return res.status(500).json({error:true,message:`User Not Found with given email ${email}`})
-            }
-
-            let otp=Math.floor(Math.random()*899999+100000);
-            
-            let user=await User.findOneAndUpdate({email},
-                {hashedotp:otp},{new:true,runValidators:true})
-
-                sendOtp(email,otp,user.fullname)
-
-            return res.status(201).json({error:false,message:"User Added Successfully",data:user})
-
-    }
-    catch(err)
-    {
-        next(err)
-    }
-}
-
-module.exports={
+module.exports = {
     createUser,
-    loginUser
-}
+    getUsers,
+};

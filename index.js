@@ -5,10 +5,13 @@ const studentRoutes = require('.//routes/student.routes');
 const TeacherRoutes = require('.//routes/teacher.routes');
 const TeacherLoginRoutes = require('.//routes/teacherLogin.routes');
 const EmailOtpRoutes = require('.//routes/emailotp.routes');
+const UserRoutes = require('.//routes/user.routes');
 
 let app = express();
 
 app.use(express.json()) //? if not used data will be undefined when we get data from front end
+
+app.use(express.static("./public/"))
 
 //? use method call middleware
 //! Why it is called => TO CALL THE MIDDLEWARE
@@ -17,6 +20,7 @@ app.use("/api/student", studentRoutes)
 app.use("/api/teacher", TeacherRoutes)
 app.use("/api/teacherlogin", TeacherLoginRoutes)
 app.use("/api/emailotp", EmailOtpRoutes)
+app.use("/api/user", UserRoutes)
 
 //! PAGE NOT FOUND MIDDLEWARE
 app.use("*",(req, res, next)=>{
